@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import useDeck from "../hooks/useDeck";
 import { getImageUrl } from "../services/storage";
 import { useAuth } from "../hooks/useAuth.jsx";
@@ -20,7 +20,9 @@ export default function PlayType() {
   const { user } = useAuth();
   const { cards, loading, error } = useDeck(deckId);
 
-  const totalQuestions = 10;
+  const [searchParams] = useSearchParams();
+  const nParam = Number(searchParams.get("n"));
+  const totalQuestions = Number.isFinite(nParam) && nParam > 0 ? nParam : 10;
 
   const [queue, setQueue] = useState([]);
   const [index, setIndex] = useState(0);
@@ -126,7 +128,7 @@ export default function PlayType() {
       <div
         style={{
           width: "100%",
-          aspectRatio: "16 / 9",
+          aspectRatio: "1 / 1",
           borderRadius: 16,
           overflow: "hidden",
           border: "1px solid rgba(0,0,0,0.12)",
@@ -139,7 +141,7 @@ export default function PlayType() {
           <img
             src={imageUrl}
             alt="question"
-            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            style={{ width: "100%", objectFit: "contain" }}
           />
         ) : (
           <span style={{ opacity: 0.6 }}>No image</span>

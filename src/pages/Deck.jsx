@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, createSearchParams } from "react-router-dom";
 import useDeck from "../hooks/useDeck";
 import { getImageUrl } from "../services/storage";
 
 export default function Deck() {
   const { deckId } = useParams();
   const { deck, cards, loading, error } = useDeck(deckId);
+
+  function playLink(deckId, mode, n, extraParams = {}) {
+  const params = new URLSearchParams({ n: String(n), ...extraParams });
+  return `/play/${deckId}/${mode}?${params.toString()}`;
+}
 
   // Map of cardId -> resolved URL
   const [urls, setUrls] = useState({});
@@ -49,30 +54,43 @@ export default function Deck() {
 
   return (
     <div style={{ padding: 24 }}>
-      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-        <div>
-          <h1 style={{ margin: 0 }}>{deck?.title || deckId}</h1>
-          <p style={{ marginTop: 6, opacity: 0.7 }}>{cards.length} cards</p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {/* MCQ lengths */}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Link to={playLink(deckId, "mcq", 5)} style={{ textDecoration: "none" }}>
+            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>MCQ 5</button>
+          </Link>
+          <Link to={playLink(deckId, "mcq", 10)} style={{ textDecoration: "none" }}>
+            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>MCQ 10</button>
+          </Link>
+          <Link to={playLink(deckId, "mcq", 20)} style={{ textDecoration: "none" }}>
+            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>MCQ 20</button>
+          </Link>
         </div>
 
-        <div style={{ display: "flex", gap: 8 }}>
-          <Link to={`/play/${deckId}/mcq`} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>
-              MCQ
-            </button>
+        {/* Typing lengths */}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <Link to={playLink(deckId, "type", 5)} style={{ textDecoration: "none" }}>
+            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Type 5</button>
           </Link>
-          <Link to={`/play/${deckId}/type`} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>
-              Typing
-            </button>
+          <Link to={playLink(deckId, "type", 10)} style={{ textDecoration: "none" }}>
+            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Type 10</button>
           </Link>
-          <Link to={`/play/${deckId}/match`} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>
-              Match
-            </button>
+          <Link to={playLink(deckId, "type", 20)} style={{ textDecoration: "none" }}>
+            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Type 20</button>
           </Link>
         </div>
-      </div>
+
+        {/* Match stays simple */}
+        <Link to={`/play/${deckId}/match`} style={{ textDecoration: "none" }}>
+          <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Match</button>
+        </Link>
+
+        {/* Review mistakes uses MCQ + n=10 by default */}
+        <Link to={playLink(deckId, "mcq", 10, { review: "1" })} style={{ textDecoration: "none" }}>
+          <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Review mistakes</button>
+        </Link>
+    </div>
 
       {loading ? <p>Loading…</p> : null}
       {error ? <p style={{ color: "crimson" }}>{error}</p> : null}

@@ -72,6 +72,8 @@ import {
         lastActiveDate: today,
         streak: newStreak,
         xpTotal: increment(correctCount), // simple XP = correct answers
+        lastDeckId: deckId,
+        lastMode: mode,
         updatedAt: serverTimestamp(),
       },
       { merge: true }
