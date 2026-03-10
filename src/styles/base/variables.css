@@ -1,0 +1,28 @@
+:root {
+	--bg: #f7f4ee;
+	--surface: #fffdf9;
+	--surface-2: #f1ece4;
+	--text: #2a251f;
+	--muted: #746a5f;
+	--border: rgba(42, 37, 31, 0.12);
+	--border-strong: rgba(42, 37, 31, 0.2);
+	--primary: #4f7cff;
+	--primary-hover: #3f6ff9;
+	--primary-soft: rgba(79, 124, 255, 0.12);
+	--danger-soft: #fff3f3;
+	--success: #1f8f52;
+
+	--shadow-sm: 0 4px 10px rgba(26, 21, 16, 0.04);
+	--shadow-md: 0 12px 30px rgba(26, 21, 16, 0.08);
+
+	--radius-sm: 10px;
+	--radius-md: 14px;
+	--radius-lg: 18px;
+	--radius-pill: 999px;
+
+	--max-page: 1120px;
+
+	--font-heading: "Poppins", sans-serif;
+	--font-ui: "Montserrat", sans-serif;
+	--font-korean: "Nanum Gothic", sans-serif;
+}

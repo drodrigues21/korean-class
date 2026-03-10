@@ -6,147 +6,139 @@ import { subscribeUserStats } from "../services/userStats";
 import { fetchDeckProgressSummary } from "../services/deckProgress";
 
 export default function Dashboard() {
-  const { decks, loading, error } = useDecks();
-  const { user } = useAuth();
+	const { decks, loading, error } = useDecks();
+	const { user } = useAuth();
 
-  const [stats, setStats] = useState(null);
+	const [stats, setStats] = useState(null);
+	const [deckProgress, setDeckProgress] = useState({});
+	const [progressLoading, setProgressLoading] = useState(false);
 
-  const [deckProgress, setDeckProgress] = useState({});
-  const [progressLoading, setProgressLoading] = useState(false);
+	useEffect(() => {
+		if (!user?.uid) return;
+		const unsub = subscribeUserStats(user.uid, setStats);
+		return () => unsub();
+	}, [user?.uid]);
 
-  // Add continue options
-  function modeToPath(deckId, mode) {
-    if (!deckId || !mode) return "";
-    if (mode === "mcq") return `/play/${deckId}/mcq`;
-    if (mode === "type") return `/play/${deckId}/type`;
-    if (mode === "match") return `/play/${deckId}/match`;
-    return `/deck/${deckId}`;
-  }
+	useEffect(() => {
+		if (!user?.uid) return;
 
-  useEffect(() => {
-    if (!user?.uid) return;
-    const unsub = subscribeUserStats(user.uid, setStats);
-    return () => unsub();
-  }, [user?.uid]);
+		let cancelled = false;
 
-  useEffect(() => {
-    if (!user?.uid) return;
-  
-    let cancelled = false;
-  
-    async function run() {
-      setProgressLoading(true);
-      try {
-        const summary = await fetchDeckProgressSummary(user.uid);
-        if (!cancelled) setDeckProgress(summary);
-      } finally {
-        if (!cancelled) setProgressLoading(false);
-      }
-    }
-  
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [user?.uid]);
+		async function run() {
+			setProgressLoading(true);
+			try {
+				const summary = await fetchDeckProgressSummary(user.uid);
+				if (!cancelled) setDeckProgress(summary);
+			} finally {
+				if (!cancelled) setProgressLoading(false);
+			}
+		}
 
-  return (
-    <div style={{ padding: 24 }}>
-      <h1>Dashboard</h1>
+		run();
+		return () => {
+			cancelled = true;
+		};
+	}, [user?.uid]);
 
-      {/* Stats */}
-      <div
-        style={{
-          marginTop: 12,
-          padding: 14,
-          borderRadius: 14,
-          border: "1px solid rgba(0,0,0,0.12)",
-          maxWidth: 520,
-        }}
-      >
-        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ opacity: 0.7, fontSize: 13 }}>Streak</div>
-            <div style={{ fontSize: 28, fontWeight: 800 }}>
-              {stats?.streak ?? 0} 🔥
-            </div>
-          </div>
+	function modeToPath(deckId, mode) {
+		if (!deckId || !mode) return "";
+		if (mode === "mcq") return `/play/${deckId}/mcq`;
+		if (mode === "type") return `/play/${deckId}/type`;
+		if (mode === "match") return `/play/${deckId}/match`;
+		return `/deck/${deckId}`;
+	}
 
-          <div>
-            <div style={{ opacity: 0.7, fontSize: 13 }}>XP</div>
-            <div style={{ fontSize: 28, fontWeight: 800 }}>
-              {stats?.xpTotal ?? 0}
-            </div>
-          </div>
+	return (
+		<div className="dashboard">
+			<div>
+				<h1 className="section-title">Dashboard</h1>
+				<p className="section-subtitle">
+					Pick up where you left off and keep your Korean practice consistent.
+				</p>
+			</div>
 
-          <div>
-            <div style={{ opacity: 0.7, fontSize: 13 }}>Last active</div>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>
-              {stats?.lastActiveDate ?? "—"}
-            </div>
-          </div>
-        </div>
-      </div>
+			<section className="surface-card dashboard__stats">
+				<div className="dashboard__stats-grid">
+					<div className="soft-card dashboard__stat-card">
+						<div className="muted dashboard__stat-label">Streak</div>
+						<div className="dashboard__stat-value">{stats?.streak ?? 0} 🔥</div>
+					</div>
 
-      {/* Continue options */}
-      {stats?.lastDeckId ? (
-        <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link to={modeToPath(stats.lastDeckId, stats.lastMode)} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer", fontWeight: 800 }}>
-              Continue
-            </button>
-          </Link>
+					<div className="soft-card dashboard__stat-card">
+						<div className="muted dashboard__stat-label">XP</div>
+						<div className="dashboard__stat-value">{stats?.xpTotal ?? 0}</div>
+					</div>
 
-          <Link to={`/deck/${stats.lastDeckId}`} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>
-              Open last deck
-            </button>
-          </Link>
+					<div className="soft-card dashboard__stat-card">
+						<div className="muted dashboard__stat-label">Last active</div>
+						<div className="dashboard__stat-value">
+							{stats?.lastActiveDate ?? "—"}
+						</div>
+					</div>
+				</div>
 
-          <span style={{ opacity: 0.7, alignSelf: "center", fontSize: 14 }}>
-            Last: {stats.lastDeckId} ({stats.lastMode || "—"})
-          </span>
-        </div>
-      ) : null}
+				{stats?.lastDeckId ? (
+					<div className="row-wrap dashboard__continue">
+						<Link to={modeToPath(stats.lastDeckId, stats.lastMode)}>
+							<button className="primary-btn">Continue</button>
+						</Link>
 
-      {/* Decks */}
-      {loading ? <p>Loading decks…</p> : null}
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
+						<Link to={`/deck/${stats.lastDeckId}`}>
+							<button>Open last deck</button>
+						</Link>
 
-      <div style={{ display: "grid", gap: 12, marginTop: 12, maxWidth: 420 }}>
-      {decks.map((deck) => {
-  const prog = deckProgress[deck.id];
+						<span className="badge">
+							Last: {stats.lastDeckId} ({stats.lastMode || "—"})
+						</span>
+					</div>
+				) : null}
+			</section>
 
-  return (
-    <Link
-      key={deck.id}
-      to={`/deck/${deck.id}`}
-      style={{
-        padding: 14,
-        borderRadius: 12,
-        border: "1px solid rgba(0,0,0,0.12)",
-        textDecoration: "none",
-        color: "inherit",
-      }}
-    >
-      <div style={{ fontWeight: 800 }}>{deck.title || deck.id}</div>
-      <div style={{ opacity: 0.7, fontSize: 14 }}>Deck ID: {deck.id}</div>
+			<section className="dashboard__decks">
+				<div>
+					<h2 className="ui-heading">Your decks</h2>
+					<p className="muted">
+						Practice by week and track your mastery over time.
+					</p>
+				</div>
 
-      <div style={{ marginTop: 8, fontSize: 14, opacity: 0.85 }}>
-        {progressLoading ? (
-          "Loading progress…"
-        ) : prog ? (
-          <>
-            Mastery: <strong>{prog.masteryPct}%</strong> · Seen: {prog.seenCards}
-          </>
-        ) : (
-          "Not started"
-        )}
-      </div>
-    </Link>
-  );
-})}
-      </div>
-    </div>
-  );
+				{loading ? <p className="muted">Loading decks…</p> : null}
+				{error ? <p className="text-danger">{error}</p> : null}
+
+				<div className="grid-auto">
+					{decks.map((deck) => {
+						const prog = deckProgress[deck.id];
+
+						return (
+							<Link
+								key={deck.id}
+								to={`/deck/${deck.id}`}
+								className="surface-card dashboard__deck-card"
+							>
+								<div className="dashboard__deck-title">
+									{deck.title || deck.id}
+								</div>
+								<div className="muted dashboard__deck-meta">
+									Deck ID: {deck.id}
+								</div>
+
+								<div className="dashboard__deck-progress">
+									{progressLoading ? (
+										<span className="muted">Loading progress…</span>
+									) : prog ? (
+										<span>
+											Mastery: <strong>{prog.masteryPct}%</strong> · Seen:{" "}
+											{prog.seenCards}
+										</span>
+									) : (
+										<span className="muted">Not started</span>
+									)}
+								</div>
+							</Link>
+						);
+					})}
+				</div>
+			</section>
+		</div>
+	);
 }

@@ -1,8 +1,7 @@
-import '../styles/App.css'
-import AppRouter from './router.jsx'
+import AppRouter from "./router.jsx";
 
 function App() {
-  return <AppRouter />
+	return <AppRouter />;
 }
 
-export default App
+export default App;

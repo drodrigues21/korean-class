@@ -1,0 +1,151 @@
+.app-header {
+	position: sticky;
+	top: 0;
+	z-index: 50;
+	backdrop-filter: blur(10px);
+	background: rgba(247, 244, 238, 0.82);
+	border-bottom: 1px solid rgba(42, 37, 31, 0.08);
+}
+
+.app-header__inner {
+	min-height: 78px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 24px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.app-header__left {
+	display: flex;
+	align-items: center;
+	gap: 28px;
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.app-brand {
+	text-decoration: none;
+	color: inherit;
+	display: grid;
+	gap: 2px;
+}
+
+.app-brand__title {
+	font-size: 20px;
+	font-weight: 700;
+	line-height: 1;
+	font-family: var(--font-heading);
+}
+
+.app-brand__subtitle {
+	font-size: 12px;
+}
+
+.app-nav {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.app-nav__link {
+	padding: 10px 14px;
+	border-radius: 12px;
+	text-decoration: none;
+	color: inherit;
+	font-weight: 700;
+	font-size: 14px;
+	transition: background 0.15s ease;
+}
+
+.app-nav__link--active {
+	background: rgba(79, 124, 255, 0.12);
+}
+
+.app-header__right {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.user-chip {
+	padding: 8px 12px;
+	border-radius: 999px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	box-shadow: none;
+}
+
+.user-chip__dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+	background: #1f8f52;
+	display: inline-block;
+}
+
+.user-chip__text {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.app-header__right button {
+	padding: 10px 14px;
+	border-radius: 12px;
+	cursor: pointer;
+}
+
+@media (max-width: 900px) {
+	.app-header__inner {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.app-header__left,
+	.app-header__right {
+		width: 100%;
+	}
+
+	.app-header__right {
+		justify-content: space-between;
+	}
+}
+
+@media (max-width: 640px) {
+	.app-header__inner {
+		min-height: unset;
+		gap: 14px;
+	}
+
+	.app-header__left {
+		gap: 14px;
+	}
+
+	.app-nav {
+		width: 100%;
+		gap: 8px;
+	}
+
+	.app-nav__link {
+		flex: 1 1 auto;
+		text-align: center;
+	}
+
+	.app-header__right {
+		gap: 10px;
+	}
+
+	.user-chip {
+		width: 100%;
+		justify-content: center;
+	}
+
+	.app-header__right button {
+		width: 100%;
+	}
+}

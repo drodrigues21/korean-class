@@ -1,0 +1,61 @@
+.admin-page {
+	max-width: 560px;
+	display: grid;
+	gap: 18px;
+}
+
+.admin-page__title {
+	margin: 0;
+	font-family: var(--font-heading);
+	font-size: 2rem;
+	line-height: 1.1;
+}
+
+.admin-page__meta {
+	opacity: 0.75;
+	display: grid;
+	gap: 4px;
+}
+
+.admin-page__denied {
+	padding: 12px;
+	border-radius: 12px;
+	border: 1px solid var(--border);
+	background: var(--surface);
+}
+
+.admin-page__form {
+	display: grid;
+	gap: 12px;
+}
+
+.admin-page__field {
+	display: grid;
+	gap: 6px;
+}
+
+.admin-page__buttons {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.admin-page__button {
+	padding: 10px 14px;
+	border-radius: 10px;
+	cursor: pointer;
+}
+
+.admin-page__tools {
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid var(--border);
+	display: grid;
+	gap: 10px;
+}
+
+.admin-page__tools-title {
+	margin: 0;
+	font-size: 18px;
+	font-family: var(--font-heading);
+}

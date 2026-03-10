@@ -4,146 +4,151 @@ import useDeck from "../hooks/useDeck";
 import { getImageUrl } from "../services/storage";
 
 export default function Deck() {
-  const { deckId } = useParams();
-  const { deck, cards, loading, error } = useDeck(deckId);
+	const { deckId } = useParams();
+	const { deck, cards, loading, error } = useDeck(deckId);
 
-  function playLink(deckId, mode, n, extraParams = {}) {
-  const params = new URLSearchParams({ n: String(n), ...extraParams });
-  return `/play/${deckId}/${mode}?${params.toString()}`;
-}
+	const [urls, setUrls] = useState({});
+	const [reviewDefault, setReviewDefault] = useState(false);
 
-  // Map of cardId -> resolved URL
-  const [urls, setUrls] = useState({});
+	useEffect(() => {
+		const saved = localStorage.getItem("mcqReviewDefault");
+		setReviewDefault(saved === "true");
+	}, []);
 
-  useEffect(() => {
-    let cancelled = false;
+	function handleToggleReviewDefault(e) {
+		const checked = e.target.checked;
+		setReviewDefault(checked);
+		localStorage.setItem("mcqReviewDefault", String(checked));
+	}
 
-    async function run() {
-      if (!cards?.length) return;
+	function playLink(deckId, mode, n, extraParams = {}) {
+		const baseParams = { n: String(n), ...extraParams };
 
-      // Only fetch URLs we don't already have
-      const missing = cards.filter((c) => c.imagePath && !urls[c.id]);
-      if (missing.length === 0) return;
+		if (mode === "mcq" && reviewDefault && !("review" in baseParams)) {
+			baseParams.review = "1";
+		}
 
-      const entries = await Promise.all(
-        missing.map(async (c) => {
-          try {
-            const url = await getImageUrl(c.imagePath);
-            return [c.id, url];
-          } catch {
-            return [c.id, ""];
-          }
-        })
-      );
+		const params = new URLSearchParams(baseParams);
+		return `/play/${deckId}/${mode}?${params.toString()}`;
+	}
 
-      if (cancelled) return;
+	useEffect(() => {
+		let cancelled = false;
 
-      setUrls((prev) => {
-        const next = { ...prev };
-        for (const [id, url] of entries) next[id] = url;
-        return next;
-      });
-    }
+		async function run() {
+			if (!cards?.length) return;
 
-    run();
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cards]);
+			const missing = cards.filter((c) => c.imagePath && !urls[c.id]);
+			if (missing.length === 0) return;
 
-  return (
-    <div style={{ padding: 24 }}>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        {/* MCQ lengths */}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Link to={playLink(deckId, "mcq", 5)} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>MCQ 5</button>
-          </Link>
-          <Link to={playLink(deckId, "mcq", 10)} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>MCQ 10</button>
-          </Link>
-          <Link to={playLink(deckId, "mcq", 20)} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>MCQ 20</button>
-          </Link>
-        </div>
+			const entries = await Promise.all(
+				missing.map(async (c) => {
+					try {
+						const url = await getImageUrl(c.imagePath);
+						return [c.id, url];
+					} catch {
+						return [c.id, ""];
+					}
+				}),
+			);
 
-        {/* Typing lengths */}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <Link to={playLink(deckId, "type", 5)} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Type 5</button>
-          </Link>
-          <Link to={playLink(deckId, "type", 10)} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Type 10</button>
-          </Link>
-          <Link to={playLink(deckId, "type", 20)} style={{ textDecoration: "none" }}>
-            <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Type 20</button>
-          </Link>
-        </div>
+			if (cancelled) return;
 
-        {/* Match stays simple */}
-        <Link to={`/play/${deckId}/match`} style={{ textDecoration: "none" }}>
-          <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Match</button>
-        </Link>
+			setUrls((prev) => {
+				const next = { ...prev };
+				for (const [id, url] of entries) next[id] = url;
+				return next;
+			});
+		}
 
-        {/* Review mistakes uses MCQ + n=10 by default */}
-        <Link to={playLink(deckId, "mcq", 10, { review: "1" })} style={{ textDecoration: "none" }}>
-          <button style={{ padding: "10px 14px", borderRadius: 10, cursor: "pointer" }}>Review mistakes</button>
-        </Link>
-    </div>
+		run();
+		return () => {
+			cancelled = true;
+		};
+	}, [cards, urls]);
 
-      {loading ? <p>Loading…</p> : null}
-      {error ? <p style={{ color: "crimson" }}>{error}</p> : null}
+	return (
+		<div className="deck-page">
+			<div className="deck-page__header">
+				<div>
+					<h1 className="deck-page__title">{deck?.title || deckId}</h1>
+					<p className="deck-page__meta">{cards.length} cards</p>
+				</div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-          gap: 12,
-          marginTop: 16,
-        }}
-      >
-        {cards.map((card) => {
-          const src = urls[card.id] || "";
-          return (
-            <div
-              key={card.id}
-              style={{
-                border: "1px solid rgba(0,0,0,0.12)",
-                borderRadius: 14,
-                padding: 12,
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  width: "100%",
-                  aspectRatio: "1 / 1",
-                  borderRadius: 12,
-                  background: "rgba(0,0,0,0.04)",
-                  display: "grid",
-                  placeItems: "center",
-                  overflow: "hidden",
-                }}
-              >
-                {src ? (
-                  <img
-                    src={src}
-                    alt={card.hangul}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                    loading="lazy"
-                  />
-                ) : (
-                  <span style={{ opacity: 0.6, fontSize: 12 }}>No image</span>
-                )}
-              </div>
+				<div className="deck-page__actions">
+					<Link to={playLink(deckId, "mcq", 5)}>
+						<button>MCQ 5</button>
+					</Link>
+					<Link to={playLink(deckId, "mcq", 10)}>
+						<button>MCQ 10</button>
+					</Link>
+					<Link to={playLink(deckId, "mcq", 20)}>
+						<button>MCQ 20</button>
+					</Link>
 
-              <div style={{ marginTop: 10, fontSize: 18, fontWeight: 700 }}>{card.hangul}</div>
-              {/* <div style={{ marginTop: 4, opacity: 0.65, fontSize: 12 }}>{card.id}</div> */}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+					<Link to={playLink(deckId, "type", 5)}>
+						<button>Type 5</button>
+					</Link>
+					<Link to={playLink(deckId, "type", 10)}>
+						<button>Type 10</button>
+					</Link>
+					<Link to={playLink(deckId, "type", 20)}>
+						<button>Type 20</button>
+					</Link>
+
+					<Link to={`/play/${deckId}/match`}>
+						<button>Match</button>
+					</Link>
+
+					<Link
+						to={{
+							pathname: `/play/${deckId}/mcq`,
+							search: `?${createSearchParams({ review: "1", n: "10" })}`,
+						}}
+					>
+						<button>Review mistakes</button>
+					</Link>
+				</div>
+			</div>
+
+			{/* <div className="deck-page__review-toggle">
+				<label>
+					<input
+						type="checkbox"
+						checked={reviewDefault}
+						onChange={handleToggleReviewDefault}
+					/>
+					Start MCQ in review mode by default
+				</label>
+			</div> */}
+
+			{loading ? <p className="muted">Loading…</p> : null}
+			{error ? <p className="text-danger">{error}</p> : null}
+
+			<div className="deck-page__grid">
+				{cards.map((card) => {
+					const src = urls[card.id] || "";
+					return (
+						<div key={card.id} className="deck-card">
+							<div className="deck-card__image-wrap">
+								{src ? (
+									<img
+										src={src}
+										alt={card.hangul}
+										className="deck-card__image"
+										loading="lazy"
+									/>
+								) : (
+									<span className="deck-card__image--empty">No image</span>
+								)}
+							</div>
+
+							<div className="deck-card__hangul korean-text">{card.hangul}</div>
+							{/* <div className="deck-card__id">{card.id}</div> */}
+						</div>
+					);
+				})}
+			</div>
+		</div>
+	);
 }

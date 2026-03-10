@@ -1,53 +1,75 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth.jsx";
 
-const linkStyle = ({ isActive }) => ({
-  padding: "8px 12px",
-  borderRadius: 10,
-  textDecoration: "none",
-  background: isActive ? "rgba(0,0,0,0.08)" : "transparent",
-  color: "inherit",
-});
-
 export default function Layout() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+	const { user, logout } = useAuth();
+	const navigate = useNavigate();
 
-  async function handleLogout() {
-    await logout();
-    navigate("/login", { replace: true });
-  }
+	const adminUid = import.meta.env.VITE_ADMIN_UID;
+	const isAdmin = user?.uid && adminUid && user.uid === adminUid;
 
-  return (
-    <div>
-      <header style={{ padding: 16, borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
-        <nav style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <NavLink to="/" style={linkStyle}>Dashboard</NavLink>
+	async function handleLogout() {
+		await logout();
+		navigate("/login", { replace: true });
+	}
 
-          <div style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
-            {user ? (
-              <>
-                <span style={{ fontSize: 14, opacity: 0.8 }}>
-                  {user.displayName || user.email}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  style={{ padding: "8px 12px", borderRadius: 10, cursor: "pointer" }}
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <NavLink to="/login" style={linkStyle}>Login</NavLink>
-            )}
-          </div>
-          <NavLink to="/admin" style={linkStyle}>Admin</NavLink>
-        </nav>
-      </header>
+	function navClass({ isActive }) {
+		return `app-nav__link ${isActive ? "app-nav__link--active" : ""}`;
+	}
 
-      <main>
-        <Outlet />
-      </main>
-    </div>
-  );
+	return (
+		<div>
+			<header className="app-header">
+				<div className="page-shell app-header__inner">
+					<div className="app-header__left">
+						<NavLink to="/" className="app-brand">
+							<span className="app-brand__title">Hanam Korean Class</span>
+							<span className="app-brand__subtitle muted">Study companion</span>
+						</NavLink>
+
+						<nav className="app-nav">
+							{user ? (
+								<NavLink to="/" className={navClass}>
+									Dashboard
+								</NavLink>
+							) : (
+								<NavLink to="/login" className={navClass}>
+									Login
+								</NavLink>
+							)}
+
+							{isAdmin ? (
+								<NavLink to="/admin" className={navClass}>
+									Admin
+								</NavLink>
+							) : null}
+						</nav>
+					</div>
+
+					<div className="app-header__right">
+						{user ? (
+							<>
+								<div className="surface-card user-chip">
+									<span className="user-chip__dot" />
+									<span className="user-chip__text">
+										{user.displayName || user.email}
+									</span>
+								</div>
+
+								<button className="ghost-btn" onClick={handleLogout}>
+									Logout
+								</button>
+							</>
+						) : (
+							<span className="muted">Not signed in</span>
+						)}
+					</div>
+				</div>
+			</header>
+
+			<main className="page-shell page-section">
+				<Outlet />
+			</main>
+		</div>
+	);
 }
